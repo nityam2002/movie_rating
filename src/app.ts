@@ -1,12 +1,11 @@
 // app.ts
-import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import express from 'express';
 import userRoutes from './routes/userRoutes';
 import contentRoutes from './routes/contentRoutes';
 import errorMiddleware from './middlewares/errorMiddleware';
 import cors from 'cors';
-import { prismaClient } from './lib/db';
+import createApolloGraphqlServer from './graphql';
 
 
 
@@ -16,47 +15,9 @@ const PORT = 3000;
 
 
 async function init() {
-  const server = new ApolloServer({
-    typeDefs: `
-    type Query{
-      hello: String
-      hey(name:String): String
-    }
-    type Mutation{
-      createUser(firstName:String!, lastName:String!, email:String!, password:String!): Boolean
-    }
-    `,
-    resolvers: {
-      Query: {
-        hello: () => `Hey there this is a graphql server`,
-        hey: (_, { name }: { name: String }) => `Hey there ${name}`
-      },
-      Mutation: {
-        createUser: async (_, { firstName, lastName, email, password }:
-          { firstName: string; lastName: string; email: string; password: string }) => {
-          await prismaClient.user.create({
-            data: {
-              email,
-              firstName,
-              lastName,
-              password,
-              salt: 'random_salt'
-            }
-          })
-          return true
-        }
-      }
-    },
-  });
-  await server.start();
-
-
-
-
-
   app.use(express.json(), cors<cors.CorsRequest>());
 
-  app.use('/graphql', expressMiddleware(server));
+  app.use('/graphql', expressMiddleware(await createApolloGraphqlServer()));
   // Routes
   app.use('/users', userRoutes);
   app.use('/content', contentRoutes);
