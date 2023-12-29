@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node dist/app.js",
     "dev": "tsc-watch --onSuccess \"npm start\"",
-    "build": "tsc"
+    "build": "tsc",
+    "migrate": "npx prisma migrate dev"
   },
   "author": "",
   "license": "ISC",

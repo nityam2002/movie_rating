@@ -34,9 +34,10 @@ class userController {
       //   'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id',
       //   [username, hashedPassword]
       // );
-      const result = await prisma.user.create({data:{username:username, password:hashedPassword}});
+      // const result = await prisma.user.create({data:{username:username, password:hashedPassword}});
 
-      return res.json({ success: true, message: 'User signed up successfully', userId: result.id });
+      return res.json({ success: true, message: 'User signed up successfully' });
+      // return res.json({ success: true, message: 'User signed up successfully', userId: result.id });
     } catch (error) {
       return res.status(error.code || 500).json({ error: error.message });
     }
@@ -52,9 +53,10 @@ class userController {
 
       // Retrieve user data from the database
       // const result = await pool.query('SELECT * FROM User WHERE public.name = $1', [username]);
-      const result = await prisma.user.findFirst({where:{username:username}});
-      console.log(result);
-      const user = result;
+      // const result = await prisma.user.findFirst({where:{username:username}});
+      
+      console.log();
+      const user = {id:'efse', password,username};
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
 

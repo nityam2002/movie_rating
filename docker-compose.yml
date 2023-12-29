@@ -1,35 +1,17 @@
-version: '3.8'
+version: "3.4"
 
 services:
   postgres:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: postgre
-      POSTGRES_PASSWORD: nityam@1492
-      POSTGRES_DB: Movie
+    container_name: movies-db
+    image: postgres
     ports:
-      - "5432:5432"
-    networks:
-      - app-network
+      - 5433:5432
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - postgres
+      - postgres_data:/var/lib/postgresql/data
     environment:
-      DATABASE_URL: postgres://postgre:nityam@1492@postgres:5432/Movie
-      PORT: 3000
-    ports:
-      - "3000:3000"
-    networks:
-      - app-network
-
-networks:
-  app-network:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: movies
+      POSTGRES_PASSWORD: movies
 
 volumes:
-  postgres-data:
+  postgres_data:

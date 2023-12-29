@@ -6,6 +6,8 @@ import userRoutes from './routes/userRoutes';
 import contentRoutes from './routes/contentRoutes';
 import errorMiddleware from './middlewares/errorMiddleware';
 import cors from 'cors';
+import { prismaClient } from './lib/db';
+
 
 
 const app = express();
@@ -13,18 +15,36 @@ const PORT = 3000;
 
 
 
-async function init(){
+async function init() {
   const server = new ApolloServer({
     typeDefs: `
     type Query{
       hello: String
       hey(name:String): String
     }
+    type Mutation{
+      createUser(firstName:String!, lastName:String!, email:String!, password:String!): Boolean
+    }
     `,
     resolvers: {
-      Query:{
-        hello: ()=> `Hey there this is a graphql server`,
-        hey: (_,{name}:{name:String})=> `Hey there ${name}`
+      Query: {
+        hello: () => `Hey there this is a graphql server`,
+        hey: (_, { name }: { name: String }) => `Hey there ${name}`
+      },
+      Mutation: {
+        createUser: async (_, { firstName, lastName, email, password }:
+          { firstName: string; lastName: string; email: string; password: string }) => {
+          await prismaClient.user.create({
+            data: {
+              email,
+              firstName,
+              lastName,
+              password,
+              salt: 'random_salt'
+            }
+          })
+          return true
+        }
       }
     },
   });
@@ -34,20 +54,20 @@ async function init(){
 
 
 
-app.use(express.json(), cors<cors.CorsRequest>());
+  app.use(express.json(), cors<cors.CorsRequest>());
 
-app.use('/graphql', expressMiddleware(server));
-// Routes
-app.use('/users', userRoutes);
-app.use('/content', contentRoutes);
+  app.use('/graphql', expressMiddleware(server));
+  // Routes
+  app.use('/users', userRoutes);
+  app.use('/content', contentRoutes);
 
-// Error handling middleware
-app.use(errorMiddleware);
+  // Error handling middleware
+  app.use(errorMiddleware);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 
-});
+  });
 }
 
 init()
