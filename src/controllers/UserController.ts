@@ -3,19 +3,21 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Pool } from 'pg';
-import { ValidationError } from '../errors/CustomError';
+import { ValidationError } from '../errors/customError';
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 
 const pool = new Pool({
   user: 'postgres',
   host: 'localhost',
-  database: 'Movie',
+  database: 'movierate',
   password: 'nityam@1492',
   port: 5432,
 });
 
 const SECRET_KEY = 'your-secret-key'; // Replace with your actual secret key
 
-class UserController {
+class userController {
   static async signUp(req: Request, res: Response) {
     try {
       const { username, password } = req.body;
@@ -28,12 +30,13 @@ class UserController {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Save user data to the database
-      const result = await pool.query(
-        'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id',
-        [username, hashedPassword]
-      );
+      // const result = await pool.query(
+      //   'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id',
+      //   [username, hashedPassword]
+      // );
+      const result = await prisma.user.create({data:{username:username, password:hashedPassword}});
 
-      return res.json({ success: true, message: 'User signed up successfully', userId: result.rows[0].id });
+      return res.json({ success: true, message: 'User signed up successfully', userId: result.id });
     } catch (error) {
       return res.status(error.code || 500).json({ error: error.message });
     }
@@ -48,8 +51,10 @@ class UserController {
       }
 
       // Retrieve user data from the database
-      const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-      const user = result.rows[0];
+      // const result = await pool.query('SELECT * FROM User WHERE public.name = $1', [username]);
+      const result = await prisma.user.findFirst({where:{username:username}});
+      console.log(result);
+      const user = result;
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
 
@@ -64,9 +69,9 @@ class UserController {
       return res.json({ success: true, token });
     } catch (error) {
         console.log(error)
-      return res.status(error?.code || 500).json({ error: error.message });
+      return res.status(error?.ifri || 500).json({ error: error });
     }
   }
 }
 
-export default UserController;
+export default userController;
